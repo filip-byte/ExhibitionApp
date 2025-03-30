@@ -1,14 +1,9 @@
 package com.exhibitionapp.model.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "gallery_artwork")
 public class GalleryArtwork {
 
     @Id
@@ -16,8 +11,33 @@ public class GalleryArtwork {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "gallery_id")
+    @JoinColumn(name = "gallery_id", nullable = false)
     private Gallery gallery;
 
+    @Column(name = "image_url", nullable = false)
     private String imageUrl;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Gallery getGallery() {
+        return gallery;
+    }
+
+    public void setGallery(Gallery gallery) {
+        this.gallery = gallery;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }
