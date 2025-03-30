@@ -39,8 +39,14 @@ public class ArtworkController {
     public ResponseEntity<GalleryDTO> createGallery(
             @RequestParam String name,
             @RequestParam(required = false) String description) {
-        GalleryDTO gallery = artworkService.createGallery(name, description);
-        return new ResponseEntity<>(gallery, HttpStatus.CREATED);
+        try {
+            GalleryDTO gallery = artworkService.createGallery(name, description);
+            return new ResponseEntity<>(gallery, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(null, HttpStatus.CONFLICT); // 409 Conflict for duplicate
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/galleries/{galleryId}/artworks")
