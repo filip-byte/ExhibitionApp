@@ -1,74 +1,77 @@
 package com.exhibitionapp.service.impl;
 
 import com.exhibitionapp.model.dto.ArtworkDTO;
-import com.exhibitionapp.model.dto.GalleryDTO;
-import com.exhibitionapp.model.entity.Artwork;
 import com.exhibitionapp.model.entity.Gallery;
 import com.exhibitionapp.model.entity.GalleryArtwork;
-import com.exhibitionapp.repository.ArtworkRepository;
 import com.exhibitionapp.repository.GalleryArtworkRepository;
 import com.exhibitionapp.repository.GalleryRepository;
 import com.exhibitionapp.service.ArtworkService;
-import com.exhibitionapp.service.external.ArtworkProvider;
-import com.exhibitionapp.service.external.ArtworkProviderException;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.exhibitionapp.service.external.ArticArtworkProvider;
+import com.exhibitionapp.service.external.MetArtworkProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ArtworkServiceImpl implements ArtworkService {
 
-    private final List<ArtworkProvider> providers;
-    private final ArtworkRepository artworkRepository;
+    private final ArticArtworkProvider articProvider;
+    private final MetArtworkProvider metProvider;
     private final GalleryRepository galleryRepository;
     private final GalleryArtworkRepository galleryArtworkRepository;
 
-    @Autowired
-    public ArtworkServiceImpl(List<ArtworkProvider> providers,
-                              ArtworkRepository artworkRepository,
-                              GalleryRepository galleryRepository,
-                              GalleryArtworkRepository galleryArtworkRepository) {
-        this.providers = providers;
-        this.artworkRepository = artworkRepository;
+    public ArtworkServiceImpl(ArticArtworkProvider articProvider, MetArtworkProvider metProvider,
+                              GalleryRepository galleryRepository, GalleryArtworkRepository galleryArtworkRepository) {
+        this.articProvider = articProvider;
+        this.metProvider = metProvider;
         this.galleryRepository = galleryRepository;
         this.galleryArtworkRepository = galleryArtworkRepository;
     }
 
     @Override
-    public List<ArtworkDTO> getArtworks(int page, int limit, String query, String source) {
-        ArtworkProvider provider = providers.stream()
-                .filter(p -> p.getProviderName().equalsIgnoreCase(source))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown source: " + source));
-        try {
-            return provider.fetchArtworks(page, limit, query);
-        } catch (ArtworkProviderException e) {
-            throw new RuntimeException("Failed to fetch artworks from " + source + ": " + e.getMessage(), e);
+    public List<ArtworkDTO> getArtworks(String source, String query, int page, int limit) {
+        switch (source.toLowerCase()) {
+            case "artic":
+                return articProvider.fetchArtworks(page, limit, query);
+            case "met":
+                return metProvider.fetchArtworks(page, limit, query);
+            default:
+                throw new IllegalArgumentException("Invalid source: " + source);
         }
     }
 
     @Override
-    public GalleryDTO createGallery(String name, String description) throws IllegalArgumentException {
+    public Gallery createGallery(String name, String description) {
         if (galleryRepository.findByName(name).isPresent()) {
-            throw new IllegalArgumentException("Gallery with name '" + name + "' already exists");
+            throw new IllegalStateException("Gallery with name " + name + " already exists");
         }
-        Gallery gallery = Gallery.builder()
-                .name(name)
-                .description(description)
-                .build();
-        gallery = galleryRepository.save(gallery);
-        return new GalleryDTO(gallery.getId(), gallery.getName(), gallery.getDescription());
+        Gallery gallery = new Gallery();
+        gallery.setName(name);
+        gallery.setDescription(description);
+        return galleryRepository.save(gallery);
     }
 
     @Override
     public void addArtworkToGallery(Long galleryId, String imageUrl) {
         Gallery gallery = galleryRepository.findById(galleryId)
                 .orElseThrow(() -> new IllegalArgumentException("Gallery not found: " + galleryId));
-        GalleryArtwork galleryArtwork = GalleryArtwork.builder()
-                .gallery(gallery)
-                .imageUrl(imageUrl)
-                .build();
-        galleryArtworkRepository.save(galleryArtwork);
+        if (galleryArtworkRepository.existsByGalleryIdAndImageUrl(galleryId, imageUrl)) {
+            return; // Already exists, no-op
+        }
+        GalleryArtwork artwork = new GalleryArtwork();
+        artwork.setGallery(gallery);
+        artwork.setImageUrl(imageUrl);
+        galleryArtworkRepository.save(artwork);
+    }
+
+    @Override
+    public List<ArtworkDTO> getGalleryArtworks(Long galleryId) {
+        Gallery gallery = galleryRepository.findById(galleryId)
+                .orElseThrow(() -> new IllegalArgumentException("Gallery not found: " + galleryId));
+        return galleryArtworkRepository.findByGallery(gallery)
+                .stream()
+                .map(ga -> new ArtworkDTO(ga.getId().intValue(), null, ga.getImageUrl())) // Cast Long to int
+                .collect(Collectors.toList());
     }
 }
