@@ -42,4 +42,12 @@ public class ArtworkController {
         GalleryDTO gallery = artworkService.createGallery(name, description);
         return new ResponseEntity<>(gallery, HttpStatus.CREATED);
     }
+
+    @PostMapping("/galleries/{galleryId}/artworks")
+    public ResponseEntity<Void> addArtworkToGallery(
+            @PathVariable Long galleryId,
+            @RequestParam String imageUrl) {
+        artworkService.addArtworkToGallery(galleryId, imageUrl);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }
