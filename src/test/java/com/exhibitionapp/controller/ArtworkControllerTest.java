@@ -98,4 +98,19 @@ class ArtworkControllerTest {
         assertEquals(1, response.getBody().length);
         assertEquals("http://test.jpg", response.getBody()[0].getImageUrl());
     }
+
+    @Test
+    void getAllGalleries_success() {
+        restTemplate.postForEntity(
+                "/api/artworks/galleries?name=Gallery1&description=First", null, GalleryDTO.class);
+        restTemplate.postForEntity(
+                "/api/artworks/galleries?name=Gallery2&description=Second", null, GalleryDTO.class);
+
+        ResponseEntity<GalleryDTO[]> response = restTemplate.getForEntity(
+                "/api/artworks/galleries", GalleryDTO[].class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(2, response.getBody().length);
+        assertEquals("Gallery1", response.getBody()[0].getName());
+        assertEquals("Gallery2", response.getBody()[1].getName());
+    }
 }

@@ -52,4 +52,10 @@ public class ArtworkController {
         List<ArtworkDTO> artworks = artworkService.getGalleryArtworks(id);
         return ResponseEntity.ok(artworks);
     }
+
+    @GetMapping("/galleries")
+    public ResponseEntity<List<GalleryDTO>> getAllGalleries() {
+        List<GalleryDTO> galleries = artworkService.getAllGalleries();
+        return ResponseEntity.ok(galleries);
+    }
 }

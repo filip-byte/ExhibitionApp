@@ -1,6 +1,7 @@
 package com.exhibitionapp.service.impl;
 
 import com.exhibitionapp.model.dto.ArtworkDTO;
+import com.exhibitionapp.model.dto.GalleryDTO;
 import com.exhibitionapp.model.entity.Gallery;
 import com.exhibitionapp.model.entity.GalleryArtwork;
 import com.exhibitionapp.repository.GalleryArtworkRepository;
@@ -71,7 +72,15 @@ public class ArtworkServiceImpl implements ArtworkService {
                 .orElseThrow(() -> new IllegalArgumentException("Gallery not found: " + galleryId));
         return galleryArtworkRepository.findByGallery(gallery)
                 .stream()
-                .map(ga -> new ArtworkDTO(ga.getId().intValue(), null, ga.getImageUrl())) // Cast Long to int
+                .map(ga -> new ArtworkDTO(ga.getId().intValue(), null, ga.getImageUrl()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<GalleryDTO> getAllGalleries() {
+        return galleryRepository.findAll()
+                .stream()
+                .map(g -> new GalleryDTO(g.getId(), g.getName(), g.getDescription()))
                 .collect(Collectors.toList());
     }
 }
