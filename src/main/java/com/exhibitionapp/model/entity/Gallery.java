@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "gallery", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 public class Gallery {
 
     @Id
