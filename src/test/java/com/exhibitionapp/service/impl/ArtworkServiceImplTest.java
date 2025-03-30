@@ -94,20 +94,6 @@ class ArtworkServiceImplTest {
     }
 
     @Test
-    void getGalleryArtworks_success() {
-        Gallery gallery = new Gallery();
-        gallery.setId(1L);
-        GalleryArtwork artwork = new GalleryArtwork();
-        artwork.setImageUrl("http://test.jpg");
-        when(galleryRepository.findById(1L)).thenReturn(Optional.of(gallery));
-        when(galleryArtworkRepository.findByGallery(gallery)).thenReturn(Collections.singletonList(artwork));
-
-        List<ArtworkDTO> result = artworkService.getGalleryArtworks(1L);
-        assertEquals(1, result.size());
-        assertEquals("http://test.jpg", result.get(0).getImageUrl());
-    }
-
-    @Test
     void getGalleryArtworks_success_autoincrement() {
         Gallery gallery = new Gallery();
         gallery.setId(1L);

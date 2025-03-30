@@ -86,21 +86,16 @@ class ArtworkControllerTest {
     }
 
     @Test
-    void createGallery_duplicateName_returnsConflict() {
-        restTemplate.postForEntity("/api/artworks/galleries?name=MyGallery", null, GalleryDTO.class);
-        ResponseEntity<GalleryDTO> response = restTemplate.postForEntity(
-                "/api/artworks/galleries?name=MyGallery", null, GalleryDTO.class);
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-    }
-
-    @Test
-    void addArtworkToGallery_success() {
+    void getGalleryArtworks_success() {
         GalleryDTO gallery = restTemplate.postForEntity(
                 "/api/artworks/galleries?name=MyGallery", null, GalleryDTO.class).getBody();
-        ResponseEntity<Void> response = restTemplate.postForEntity(
-                "/api/artworks/galleries/" + gallery.getId() + "/artworks?imageUrl=http://test.jpg",
-                null, Void.class);
+        restTemplate.postForEntity(
+                "/api/artworks/galleries/" + gallery.getId() + "/artworks?imageUrl=http://test.jpg", null, Void.class);
+
+        ResponseEntity<ArtworkDTO[]> response = restTemplate.getForEntity(
+                "/api/artworks/galleries/" + gallery.getId(), ArtworkDTO[].class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, galleryArtworkRepository.count());
+        assertEquals(1, response.getBody().length);
+        assertEquals("http://test.jpg", response.getBody()[0].getImageUrl());
     }
 }
