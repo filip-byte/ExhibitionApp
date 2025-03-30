@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface ArtworkService {
     List<ArtworkDTO> getArtworks(int page, int limit, String query, String source);
-    GalleryDTO createGallery(String name, String description);
+    GalleryDTO createGallery(String name, String description) throws IllegalArgumentException;
     void addArtworkToGallery(Long galleryId, String imageUrl);
 }

@@ -49,7 +49,10 @@ public class ArtworkServiceImpl implements ArtworkService {
     }
 
     @Override
-    public GalleryDTO createGallery(String name, String description) {
+    public GalleryDTO createGallery(String name, String description) throws IllegalArgumentException {
+        if (galleryRepository.findByName(name).isPresent()) {
+            throw new IllegalArgumentException("Gallery with name '" + name + "' already exists");
+        }
         Gallery gallery = Gallery.builder()
                 .name(name)
                 .description(description)
