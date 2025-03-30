@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ExhibitionApp Frontend</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin-bottom: 20px; }
+        ul { list-style: none; padding: 0; }
+        li { margin: 5px 0; }
+        img { max-width: 200px; }
+    </style>
+</head>
+<body>
+<div class="section">
+    <h2>Search Artworks</h2>
+    <input id="source" placeholder="Source (Artic/MET)" value="Artic">
+    <input id="query" placeholder="Query (e.g., cats)" value="cats">
+    <button onclick="searchArtworks()">Search</button>
+    <ul id="artworks-list"></ul>
+</div>
+<div class="section">
+    <h2>Create Gallery</h2>
+    <input id="gallery-name" placeholder="Gallery Name">
+    <input id="gallery-desc" placeholder="Description">
+    <button onclick="createGallery()">Create</button>
+</div>
+<div class="section">
+    <h2>All Galleries</h2>
+    <button onclick="listGalleries()">Refresh</button>
+    <ul id="galleries-list"></ul>
+</div>
+<div class="section">
+    <h2>Add Artwork to Gallery</h2>
+    <input id="gallery-id" placeholder="Gallery ID">
+    <input id="image-url" placeholder="Image URL">
+    <button onclick="addArtwork()">Add</button>
+</div>
+<script>
+    const BASE_URL = 'http://localhost:8080/api/artworks';
+    async function searchArtworks() {
+        const source = document.getElementById('source').value;
+        const query = document.getElementById('query').value;
+        const response = await fetch(`${BASE_URL}?source=${source}&q=${query}`);
+        const artworks = await response.json();
+        const list = document.getElementById('artworks-list');
+        list.innerHTML = artworks.map(a => `<li>${a.title} - <img src="${a.imageUrl}" alt="${a.title}"></li>`).join('');
+    }
+    async function createGallery() {
+        const name = document.getElementById('gallery-name').value;
+        const desc = document.getElementById('gallery-desc').value;
+        const response = await fetch(`${BASE_URL}/galleries?name=${name}&description=${desc}`, { method: 'POST' });
+        if (response.ok) {
+            listGalleries();
+            document.getElementById('gallery-name').value = '';
+            document.getElementById('gallery-desc').value = '';
+        }
+    }
+    async function listGalleries() {
+        const response = await fetch(`${BASE_URL}/galleries`);
+        const galleries = await response.json();
+        const list = document.getElementById('galleries-list');
+        list.innerHTML = galleries.map(g =>
+            `<li>ID: ${g.id} - ${g.name} (${g.description})
+            <button onclick="viewGallery(${g.id})">View Artworks</button></li>`
+        ).join('');
+    }
+    async function addArtwork() {
+        const id = document.getElementById('gallery-id').value;
+        const url = document.getElementById('image-url').value;
+        const response = await fetch(`${BASE_URL}/galleries/${id}/artworks?imageUrl=${url}`, { method: 'POST' });
+        if (response.ok) {
+            viewGallery(id);
+            document.getElementById('image-url').value = '';
+        }
+    }
+    async function viewGallery(id) {
+        const response = await fetch(`${BASE_URL}/galleries/${id}`);
+        const artworks = await response.json();
+        const list = document.getElementById('artworks-list');
+        list.innerHTML = artworks.map(a => `<li><img src="${a.imageUrl}"></li>`).join('');
+    }
+    listGalleries();
+</script>
+</body>
+</html>
