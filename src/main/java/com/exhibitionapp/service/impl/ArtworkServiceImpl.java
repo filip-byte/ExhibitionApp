@@ -4,7 +4,9 @@ import com.exhibitionapp.model.dto.ArtworkDTO;
 import com.exhibitionapp.model.dto.GalleryDTO;
 import com.exhibitionapp.model.entity.Artwork;
 import com.exhibitionapp.model.entity.Gallery;
+import com.exhibitionapp.model.entity.GalleryArtwork;
 import com.exhibitionapp.repository.ArtworkRepository;
+import com.exhibitionapp.repository.GalleryArtworkRepository;
 import com.exhibitionapp.repository.GalleryRepository;
 import com.exhibitionapp.service.ArtworkService;
 import com.exhibitionapp.service.external.ArtworkProvider;
@@ -20,14 +22,17 @@ public class ArtworkServiceImpl implements ArtworkService {
     private final List<ArtworkProvider> providers;
     private final ArtworkRepository artworkRepository;
     private final GalleryRepository galleryRepository;
+    private final GalleryArtworkRepository galleryArtworkRepository;
 
     @Autowired
     public ArtworkServiceImpl(List<ArtworkProvider> providers,
                               ArtworkRepository artworkRepository,
-                              GalleryRepository galleryRepository) {
+                              GalleryRepository galleryRepository,
+                              GalleryArtworkRepository galleryArtworkRepository) {
         this.providers = providers;
         this.artworkRepository = artworkRepository;
         this.galleryRepository = galleryRepository;
+        this.galleryArtworkRepository = galleryArtworkRepository;
     }
 
     @Override
@@ -51,5 +56,16 @@ public class ArtworkServiceImpl implements ArtworkService {
                 .build();
         gallery = galleryRepository.save(gallery);
         return new GalleryDTO(gallery.getId(), gallery.getName(), gallery.getDescription());
+    }
+
+    @Override
+    public void addArtworkToGallery(Long galleryId, String imageUrl) {
+        Gallery gallery = galleryRepository.findById(galleryId)
+                .orElseThrow(() -> new IllegalArgumentException("Gallery not found: " + galleryId));
+        GalleryArtwork galleryArtwork = GalleryArtwork.builder()
+                .gallery(gallery)
+                .imageUrl(imageUrl)
+                .build();
+        galleryArtworkRepository.save(galleryArtwork);
     }
 }
