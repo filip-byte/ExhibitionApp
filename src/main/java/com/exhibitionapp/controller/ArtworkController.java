@@ -1,6 +1,7 @@
 package com.exhibitionapp.controller;
 
 import com.exhibitionapp.model.dto.ArtworkDTO;
+import com.exhibitionapp.model.dto.GalleryDTO;
 import com.exhibitionapp.service.ArtworkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,5 +33,13 @@ public class ArtworkController {
         } catch (RuntimeException e) {
             return new ResponseEntity<>(null, HttpStatus.SERVICE_UNAVAILABLE);
         }
+    }
+
+    @PostMapping("/galleries")
+    public ResponseEntity<GalleryDTO> createGallery(
+            @RequestParam String name,
+            @RequestParam(required = false) String description) {
+        GalleryDTO gallery = artworkService.createGallery(name, description);
+        return new ResponseEntity<>(gallery, HttpStatus.CREATED);
     }
 }
